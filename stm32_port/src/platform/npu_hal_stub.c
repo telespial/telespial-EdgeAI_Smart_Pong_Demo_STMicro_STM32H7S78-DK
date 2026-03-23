@@ -89,8 +89,8 @@ bool npu_hal_predict(npu_hal_t *s, const float features[16], npu_pred_t *out)
     float speed_x = npu_absf(vx);
     if (speed_x < 0.02f) speed_x = 0.02f;
 
-    /* Paddle intercept plane for right-side predictor view is near x=0.90. */
-    float t = (0.90f - x) / speed_x;
+    /* Predict to far plane in right-oriented view. */
+    float t = (1.0f - x) / speed_x;
     t = npu_clampf(t, 0.0f, 2.5f);
 
     out->y_hit = npu_reflect_axis(y, vy, t);

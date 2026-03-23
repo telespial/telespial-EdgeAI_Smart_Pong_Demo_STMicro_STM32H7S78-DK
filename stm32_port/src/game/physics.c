@@ -170,9 +170,9 @@ static float physics_ball_speed_scale(const pong_game_t *g)
     if (d > 3) d = 3;
     switch (d)
     {
-        case 1: return 1.95f;
-        case 2: return 2.14f;
-        default: return 2.32f;
+        case 1: return 2.15f;
+        case 2: return 2.38f;
+        default: return 2.58f;
     }
 }
 
@@ -210,8 +210,8 @@ static void physics_get_tuning(const pong_game_t *g, float *serve_speed, float *
     if (serve_speed) *serve_speed *= s;
     if (vlim) *vlim *= s;
 
-    /* Requested: reduce max ball speed cap by 50% from current behavior. */
-    if (vlim) *vlim *= 0.5f;
+    /* Partial cap remains for playability, but faster than prior 50%-reduced setting. */
+    if (vlim) *vlim *= 0.75f;
 }
 
 void physics_reset_ball(pong_game_t *g, int serve_dir)

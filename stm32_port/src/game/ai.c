@@ -868,7 +868,8 @@ static float ai_noise(const pong_game_t *g, bool right_side)
         }
         if (g->ai_learn_mode != kAiLearnModeBoth)
         {
-            n *= 0.85f;
+            /* In mixed modes give EdgeAI less noise so ALGO vs EdgeAI is competitive. */
+            n *= 0.65f;
         }
     }
 
@@ -903,7 +904,8 @@ static float ai_max_speed(const pong_game_t *g, bool right_side)
         }
         if (g->ai_learn_mode != kAiLearnModeBoth)
         {
-            s *= 1.08f;
+            /* Mixed-mode boost so EdgeAI side is not pace-limited vs fixed ALGO. */
+            s *= 1.20f;
         }
     }
 
@@ -1017,7 +1019,7 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                         float dtau = absf(t_hit - t_ref);
                         float disagreement = dy + dz + (0.60f * dtau);
 
-                        float npu_w = 0.16f;
+                        float npu_w = 0.28f;
                         if (disagreement >= 0.22f)
                         {
                             npu_w = 0.0f;
