@@ -23,3 +23,8 @@
 - Promoted current tuned STM32 build to golden and failsafe restore points.
 - Updated restore pointer docs and flash_restore_golden script to latest golden timestamp.
 - Regenerated failsafe SHA256 checksums.
+
+## 2026-03-23 (Promotion refresh)
+- Promoted latest aggressive EdgeAI tuning build to new golden timestamp: `20260323T004007Z`.
+- Refreshed `failsafe_active` to match the same build output.
+- Updated restore-pointer docs/scripts and regenerated `failsafe/SHA256SUMS.txt`.

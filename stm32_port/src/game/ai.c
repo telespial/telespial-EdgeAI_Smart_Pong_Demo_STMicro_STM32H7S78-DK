@@ -812,12 +812,9 @@ static uint32_t ai_update_div(const pong_game_t *g, bool use_npu)
      */
     if (g && (g->ai_learn_mode != kAiLearnModeBoth))
     {
-        switch (d)
-        {
-            case 1: return 3u;
-            case 2: return 2u;
-            default: return 1u;
-        }
+        /* Mixed-mode EdgeAI bias: refresh every frame for stronger tracking. */
+        (void)d;
+        return 1u;
     }
 
     /* NPU path: throttle updates to protect frame pacing, then adapt to observed latency. */
@@ -868,8 +865,8 @@ static float ai_noise(const pong_game_t *g, bool right_side)
         }
         if (g->ai_learn_mode != kAiLearnModeBoth)
         {
-            /* In mixed modes give EdgeAI less noise so ALGO vs EdgeAI is competitive. */
-            n *= 0.65f;
+            /* Mixed-mode EdgeAI bias: reduce noise variance. */
+            n *= 0.35f;
         }
     }
 
@@ -904,8 +901,8 @@ static float ai_max_speed(const pong_game_t *g, bool right_side)
         }
         if (g->ai_learn_mode != kAiLearnModeBoth)
         {
-            /* Mixed-mode boost so EdgeAI side is not pace-limited vs fixed ALGO. */
-            s *= 1.35f;
+            /* Mixed-mode EdgeAI bias: higher paddle speed envelope. */
+            s *= 1.45f;
         }
     }
 
@@ -1019,17 +1016,17 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                         float dtau = absf(t_hit - t_ref);
                         float disagreement = dy + dz + (0.60f * dtau);
 
-                        float npu_w = 0.28f;
-                        if (disagreement >= 0.22f)
+                        float npu_w = 0.65f;
+                        if (disagreement >= 0.28f)
                         {
                             npu_w = 0.0f;
                         }
                         else if (disagreement > 0.0f)
                         {
-                            float trust = 1.0f - (disagreement / 0.22f);
+                            float trust = 1.0f - (disagreement / 0.28f);
                             npu_w *= clampf(trust, 0.0f, 1.0f);
                         }
-                        npu_confidence = clampf(1.0f - (disagreement / 0.22f), 0.0f, 1.0f);
+                        npu_confidence = clampf(1.0f - (disagreement / 0.28f), 0.0f, 1.0f);
 
                         const float ref_w = 1.0f - npu_w;
                         y_hit = (ref_w * y_ref) + (npu_w * y_hit);
@@ -1063,7 +1060,7 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                     float vmag = sqrtf_approx((vx * vx) + (vy * vy) + (vz * vz));
                     float hs = clampf((vmag - 1.10f) * (1.0f / 1.30f), 0.0f, 1.0f);
                     float bonus = 0.10f + 0.12f * hs;
-                    if (g->ai_learn_mode != kAiLearnModeBoth) bonus += 0.12f;
+                    if (g->ai_learn_mode != kAiLearnModeBoth) bonus += 0.14f;
                     lead *= (1.0f + bonus * hs);
                 }
                 float t_use = clampf(t_hit, 0.0f, 0.80f);
