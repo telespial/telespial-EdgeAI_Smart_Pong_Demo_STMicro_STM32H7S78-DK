@@ -814,9 +814,9 @@ static uint32_t ai_update_div(const pong_game_t *g, bool use_npu)
     {
         switch (d)
         {
-            case 1: return 5u;
-            case 2: return 3u;
-            default: return 2u;
+            case 1: return 3u;
+            case 2: return 2u;
+            default: return 1u;
         }
     }
 
@@ -905,7 +905,7 @@ static float ai_max_speed(const pong_game_t *g, bool right_side)
         if (g->ai_learn_mode != kAiLearnModeBoth)
         {
             /* Mixed-mode boost so EdgeAI side is not pace-limited vs fixed ALGO. */
-            s *= 1.20f;
+            s *= 1.35f;
         }
     }
 
@@ -1063,7 +1063,7 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                     float vmag = sqrtf_approx((vx * vx) + (vy * vy) + (vz * vz));
                     float hs = clampf((vmag - 1.10f) * (1.0f / 1.30f), 0.0f, 1.0f);
                     float bonus = 0.10f + 0.12f * hs;
-                    if (g->ai_learn_mode != kAiLearnModeBoth) bonus += 0.05f;
+                    if (g->ai_learn_mode != kAiLearnModeBoth) bonus += 0.12f;
                     lead *= (1.0f + bonus * hs);
                 }
                 float t_use = clampf(t_hit, 0.0f, 0.80f);
@@ -1077,9 +1077,12 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                 ai_learn_profile_t *lp = ai_profile_side(g, right_side);
                 if (lp)
                 {
-                    uint8_t style = ai_style_select(g, lp);
-                    lp->last_style = style;
-                    ai_style_apply(g, lp, style, used_npu ? npu_confidence : 0.80f, &y_hit, &z_hit);
+                    if (g->ai_learn_mode == kAiLearnModeBoth)
+                    {
+                        uint8_t style = ai_style_select(g, lp);
+                        lp->last_style = style;
+                        ai_style_apply(g, lp, style, used_npu ? npu_confidence : 0.80f, &y_hit, &z_hit);
+                    }
                 }
             }
 
