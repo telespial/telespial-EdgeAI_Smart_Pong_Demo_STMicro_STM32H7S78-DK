@@ -84,6 +84,25 @@ Important:
 - Model-weight retraining is not performed on-device
 - Runtime learning adapts per-side control parameters (`speed_scale`, `noise_scale`, `lead_scale`)
 
+## DSP and EdgeAI Implementation Details (STM32H7S78-DK)
+This port currently runs all AI math on the Cortex-M7 CPU (`CONFIG_EDGEAI_USE_NPU=0`), with NPU-facing HAL hooks retained for forward compatibility.
+
+Current DSP-style compute in this build:
+- Floating-point physics/intercept math at fixed timestep on M7 FPU.
+- EdgeAI correction layer computes bounded deltas over the analytic intercept, with disagreement/confidence gating before blend.
+- Lightweight numeric helpers in `ai.c` (clamp, abs, fixed-iteration Newton sqrt approximation, pseudo-random noise shaping).
+- Runtime telemetry smoothing in the NPU HAL stub (`last_infer_us`, moving average `avg_infer_us`) and on-screen `N/F` + `L/M` reporting.
+- Audio synthesis path uses deterministic real-time DSP primitives in `audio_hal.c`: phase-accumulator oscillator, event-tone queueing, DMA half/full refill, and fixed-point (`Q12`) volume gain mapping.
+
+What is not enabled yet in this STM32 branch:
+- No on-chip NPU execution (STM32H7S78 has no integrated NPU).
+- No linked CMSIS-DSP kernel calls in the current game/AI path.
+- No on-device model-weight training; learning remains runtime control-parameter adaptation.
+
+Future acceleration hook points:
+- `src/platform/npu_hal_stub.c` and `src/game/ai.c` define the prediction interface and fallback flow.
+- These files are the insertion points for an external accelerator backend (or optional CMSIS-DSP kernelization) while preserving current ALGO/EDGEAI behavior and telemetry semantics.
+
 ## Features
 - 3D-look arena with depth cues and wall shading
 - `0P` / `1P` / `2P` modes
