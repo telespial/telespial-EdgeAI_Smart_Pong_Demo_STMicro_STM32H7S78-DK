@@ -1,5 +1,7 @@
 # Smart Pong (STM32H7S78-DK)
 
+![STM32H7S78](https://github.com/user-attachments/assets/adefe2a6-9e2a-43e5-b325-02e0099572a1)
+
 Smart Pong is a 3D-look Pong implementation ported to STM32H7S78-DK.
 
 ## Real World AI Learning Demonstration
