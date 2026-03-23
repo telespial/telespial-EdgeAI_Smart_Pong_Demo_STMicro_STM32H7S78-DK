@@ -18,3 +18,8 @@
 - Command:
 - Result:
 - Notes:
+
+## 2026-03-23
+- Promoted current tuned STM32 build to golden and failsafe restore points.
+- Updated restore pointer docs and flash_restore_golden script to latest golden timestamp.
+- Regenerated failsafe SHA256 checksums.

@@ -1,10 +1,10 @@
 EdgeAI Smart Pong STM32H7S78-DK restore points
 
-Golden baseline timestamp: 20260323T001308Z (UTC)
+Golden baseline timestamp: 20260323T002430Z (UTC)
 
 Files:
-- edgeai_smart_pong_stm32_golden_20260323T001308Z.elf
-- edgeai_smart_pong_stm32_golden_20260323T001308Z.bin
+- edgeai_smart_pong_stm32_golden_20260323T002430Z.elf
+- edgeai_smart_pong_stm32_golden_20260323T002430Z.bin
 - edgeai_smart_pong_stm32_failsafe_active.elf
 - edgeai_smart_pong_stm32_failsafe_active.bin
 - SHA256SUMS.txt

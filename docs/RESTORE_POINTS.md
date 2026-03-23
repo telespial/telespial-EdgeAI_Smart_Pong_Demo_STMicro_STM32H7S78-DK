@@ -4,8 +4,8 @@
 All restore artifacts live in failsafe/.
 
 ## Current Golden
-- edgeai_smart_pong_stm32_golden_20260323T001308Z.elf
-- edgeai_smart_pong_stm32_golden_20260323T001308Z.bin
+- edgeai_smart_pong_stm32_golden_20260323T002430Z.elf
+- edgeai_smart_pong_stm32_golden_20260323T002430Z.bin
 
 ## Current Failsafe Active
 - edgeai_smart_pong_stm32_failsafe_active.elf

@@ -116,6 +116,6 @@ Restore points:
 ## Restore Points
 - Active golden/failsafe pointer: `docs/RESTORE_POINTS.md`
 - Current golden artifact:
-- `failsafe/edgeai_smart_pong_stm32_golden_20260323T001308Z.elf`
+- `failsafe/edgeai_smart_pong_stm32_golden_20260323T002430Z.elf`
 - Failsafe active artifact:
 - `failsafe/edgeai_smart_pong_stm32_failsafe_active.elf`
