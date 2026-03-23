@@ -1,0 +1,16 @@
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+set(TOOLCHAIN_PREFIX arm-none-eabi)
+
+find_program(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
+find_program(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
+find_program(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
+find_program(CMAKE_OBJCOPY ${TOOLCHAIN_PREFIX}-objcopy)
+find_program(CMAKE_SIZE ${TOOLCHAIN_PREFIX}-size)
+
+if(NOT CMAKE_C_COMPILER)
+  message(FATAL_ERROR "arm-none-eabi-gcc not found in PATH")
+endif()
+
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

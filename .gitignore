@@ -1,0 +1,11 @@
+# Imported NXP baseline is reference-only and excluded from this STM32 repo
+EdgeAI_smart_pong_demo_NXP_FRDM-MCXN947/
+
+# Build artifacts
+stm32_port/build/
+stm32_port/build-arm/
+
+# Local metadata
+*.swp
+*.swo
+.DS_Store
