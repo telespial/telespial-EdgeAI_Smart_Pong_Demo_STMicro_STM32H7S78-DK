@@ -2,7 +2,7 @@
 
 ## Snapshot
 - Date: 2026-03-23
-- State: running on STM32H7S78-DK, fairness-tuned high-speed AI with switchable CMSIS-DSP path and promoted golden/failsafe restore points
+- State: running on STM32H7S78-DK, fairness-tuned high-speed AI with switchable CMSIS-DSP path (default OFF) and promoted golden/failsafe restore points
 - Baseline source: EdgeAI_smart_pong_demo_NXP_FRDM-MCXN947
 - STM32 implementation: stm32_port/
 
@@ -22,7 +22,8 @@
 - High-speed EdgeAI cadence/headroom tuning added for faster rallies
 - STM32 event audio added (wall, paddle, point, win) with in-menu `VOL` setting
 - Added user-facing `DSP` setting (`ON/OFF`) and wired CMSIS-DSP kernels into EdgeAI disagreement/confidence math
-- Latest promoted restore timestamp: `20260323T180311Z`
+- Updated startup default for `DSP` to `OFF`
+- Latest promoted restore timestamp: `20260323T180746Z`
 - Golden + failsafe artifacts captured in failsafe/
 
 ## Next Milestone

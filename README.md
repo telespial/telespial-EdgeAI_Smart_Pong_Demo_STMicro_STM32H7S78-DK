@@ -58,7 +58,7 @@ Display and touch are handled using STM32H7S78-DK board support stack (LCD + GT9
 - `Players`: `0`, `1`, `2`
 - `Difficulty`: `1`, `2`, `3`
 - `EDGEAI`: `ON`, `OFF` (UI label; no hardware NPU on STM32H7S78)
-- `DSP`: `ON`, `OFF` (`ON` enables CMSIS-DSP kernels in the EdgeAI path)
+- `DSP`: `ON`, `OFF` (`ON` enables CMSIS-DSP kernels in the EdgeAI path; startup default is `OFF`)
 - `SKILL`: `2AI`, `AI/ALGO`, `ALGO/AI`
 - `PERSIST`: `ON`, `OFF`
 - `MATCH`: `11`, `100`, `1K` (`1K` maps to `999` cap logic)
@@ -142,6 +142,6 @@ Restore points:
 ## Restore Points
 - Active golden/failsafe pointer: `docs/RESTORE_POINTS.md`
 - Current golden artifact:
-- `failsafe/edgeai_smart_pong_stm32_golden_20260323T180311Z.elf`
+- `failsafe/edgeai_smart_pong_stm32_golden_20260323T180746Z.elf`
 - Failsafe active artifact:
 - `failsafe/edgeai_smart_pong_stm32_failsafe_active.elf`

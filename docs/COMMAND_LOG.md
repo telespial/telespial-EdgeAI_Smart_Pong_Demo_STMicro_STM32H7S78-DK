@@ -56,3 +56,9 @@
 - Built successfully via `./tools/build_arm.sh`.
 - Promoted this build to golden timestamp: `20260323T180311Z`.
 - Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.
+
+## 2026-03-23 (DSP default OFF + promotion)
+- Changed startup default for `DSP` setting to `OFF`.
+- Built successfully via `./tools/build_arm.sh`.
+- Promoted this build to golden timestamp: `20260323T180746Z`.
+- Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.
