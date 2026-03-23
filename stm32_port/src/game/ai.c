@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "arm_math.h"
 #include "fsl_flash.h"
 #include "platform/time_hal.h"
 
@@ -21,6 +22,33 @@ static inline uint16_t clampu16(uint32_t v, uint16_t hi)
 static inline float absf(float v)
 {
     return (v < 0.0f) ? -v : v;
+}
+
+static inline float absf_dsp(bool use_dsp, float v)
+{
+    if (!use_dsp) return absf(v);
+    float in = v;
+    float out = 0.0f;
+    arm_abs_f32(&in, &out, 1u);
+    return out;
+}
+
+static float ai_disagreement_metric(bool use_dsp, float dy, float dz, float dtau)
+{
+    if (!use_dsp)
+    {
+        return absf(dy) + absf(dz) + (0.60f * absf(dtau));
+    }
+
+    float d[3] = {dy, dz, 0.60f * dtau};
+    float a[3] = {0.0f, 0.0f, 0.0f};
+    float sq = 0.0f;
+    float mag = 0.0f;
+
+    arm_abs_f32(d, a, 3u);
+    arm_dot_prod_f32(a, a, 3u, &sq);
+    (void)arm_sqrt_f32(sq, &mag);
+    return mag;
 }
 
 static inline float sqrtf_approx(float x)
@@ -790,7 +818,8 @@ static uint32_t ai_update_div(const pong_game_t *g, bool use_npu)
     uint8_t d = g ? g->difficulty : 2;
     if (d < 1) d = 1;
     if (d > 3) d = 3;
-    float speed = g ? absf(g->ball.vx) : 0.0f;
+    bool use_dsp = g ? g->dsp_enabled : false;
+    float speed = g ? absf_dsp(use_dsp, g->ball.vx) : 0.0f;
 
     /* At higher ball speeds, refresh targets every frame to prevent laggy AI. */
     if (speed > 3.0f) return 1u;
@@ -873,6 +902,7 @@ static void ai_update_telemetry_window(pong_game_t *g)
 static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_side)
 {
     if (!g || !p) return;
+    const bool use_dsp = g->dsp_enabled;
 
     bool ball_toward = right_side ? (g->ball.vx > 0.0f) : (g->ball.vx < 0.0f);
     bool side_edgeai = ai_learning_side_selected(g, right_side);
@@ -934,7 +964,7 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                     float dz = clampf(dz_raw, -0.24f, 0.24f);
                     float dtau = clampf(dt_raw, -0.30f, 0.30f);
 
-                    float disagreement = absf(dy) + absf(dz) + (0.60f * absf(dtau));
+                    float disagreement = ai_disagreement_metric(use_dsp, dy, dz, dtau);
                     npu_confidence = clampf(1.0f - (disagreement / 0.36f), 0.0f, 1.0f);
 
                     /* Keep the layer bounded: EDGEAI can improve targeting, but

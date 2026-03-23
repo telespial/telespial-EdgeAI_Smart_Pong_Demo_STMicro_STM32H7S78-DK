@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CLI="/usr/local/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI"
-ELF="$ROOT_DIR/failsafe/edgeai_smart_pong_stm32_golden_20260323T142009Z.elf"
+ELF="$ROOT_DIR/failsafe/edgeai_smart_pong_stm32_golden_20260323T180311Z.elf"
 
 if [[ ! -f "$ELF" ]]; then
   echo "Missing golden ELF: $ELF" >&2

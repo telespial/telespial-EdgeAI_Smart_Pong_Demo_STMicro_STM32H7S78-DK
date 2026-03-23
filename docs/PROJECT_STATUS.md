@@ -2,12 +2,12 @@
 
 ## Snapshot
 - Date: 2026-03-23
-- State: running on STM32H7S78-DK, fairness-tuned high-speed AI with promoted golden/failsafe restore points
+- State: running on STM32H7S78-DK, fairness-tuned high-speed AI with switchable CMSIS-DSP path and promoted golden/failsafe restore points
 - Baseline source: EdgeAI_smart_pong_demo_NXP_FRDM-MCXN947
 - STM32 implementation: stm32_port/
 
 ## Current Milestone
-- M7: Fair-base EdgeAI plus STM32 audio/volume integration validated and promoted to golden/failsafe
+- M8: CMSIS-DSP settings integration validated and promoted to golden/failsafe
 
 ## Achieved
 - Build + flash loop stable via tools/build_arm.sh and tools/flash_first.sh
@@ -21,11 +21,12 @@
 - Startup serve pace increased by 50%
 - High-speed EdgeAI cadence/headroom tuning added for faster rallies
 - STM32 event audio added (wall, paddle, point, win) with in-menu `VOL` setting
-- Latest promoted restore timestamp: `20260323T142009Z`
+- Added user-facing `DSP` setting (`ON/OFF`) and wired CMSIS-DSP kernels into EdgeAI disagreement/confidence math
+- Latest promoted restore timestamp: `20260323T180311Z`
 - Golden + failsafe artifacts captured in failsafe/
 
 ## Next Milestone
-- M8: Touch robustness closeout and formal smoke checklist signoff
+- M9: Touch robustness closeout and formal smoke checklist signoff
 
 ## Current Artifacts
 - Current ELF: stm32_port/build-arm/edgeai_smart_pong_stm32.elf

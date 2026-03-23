@@ -853,19 +853,20 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW0_Y + label_yoff, title_scale, "PLAYERS", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW1_Y + label_yoff, title_scale, "LEVEL", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW2_Y + label_yoff, title_scale, "EDGEAI", c_opt_text);
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW3_Y + label_yoff, title_scale, "SKILL", c_opt_text);
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW4_Y + label_yoff, title_scale, "PERSIST", c_opt_text);
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW5_Y + label_yoff, title_scale, "MATCH", c_opt_text);
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW6_Y + label_yoff, title_scale, "TARGET", c_opt_text);
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW7_Y + label_yoff, title_scale, "SPEED++", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW3_Y + label_yoff, title_scale, "DSP", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW4_Y + label_yoff, title_scale, "SKILL", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW5_Y + label_yoff, title_scale, "PERSIST", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW6_Y + label_yoff, title_scale, "MATCH", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW7_Y + label_yoff, title_scale, "TARGET", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW8_Y + label_yoff, title_scale, "SPEED++", c_opt_text);
         {
             const int32_t volume_scale = 2;
             const int32_t volume_label_yoff = (EDGEAI_UI_ROW_H - 7 * volume_scale) / 2;
             edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0,
-                                          EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW8_Y + volume_label_yoff,
+                                          EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW9_Y + volume_label_yoff,
                                           volume_scale, "VOL", c_opt_text);
         }
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW9_Y + label_yoff, title_scale, "NEW GAME", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW10_Y + label_yoff, title_scale, "NEW GAME", c_opt_text);
 
         /* Players: 0/1/2 */
         for (int i = 0; i < 3; i++)
@@ -923,11 +924,30 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
             edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, tx0, ty0, opt_scale, t, sel ? c_opt_text_sel : c_opt_text);
         }
 
+        /* DSP path: ON/OFF */
+        for (int i = 0; i < 2; i++)
+        {
+            int32_t bx0 = EDGEAI_UI_OPT2_BLOCK_X + i * (EDGEAI_UI_OPT_W + EDGEAI_UI_OPT_GAP);
+            int32_t by0 = EDGEAI_UI_ROW3_Y + opt_yoff;
+            int32_t bx1 = bx0 + EDGEAI_UI_OPT_W - 1;
+            int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
+
+            bool en = (i == 0);
+            bool sel = (g->dsp_enabled == en);
+            render_fill_round_rect(dst, w, h, tile_x0, tile_y0, bx0, by0, bx1, by1, EDGEAI_UI_OPT_H / 2, sel ? c_opt_sel : c_opt);
+
+            const char *t = en ? "ON" : "OFF";
+            int32_t tw = edgeai_text5x7_width(opt_scale, t);
+            int32_t tx0 = bx0 + (EDGEAI_UI_OPT_W - tw) / 2;
+            int32_t ty0 = by0 + (EDGEAI_UI_OPT_H - 7 * opt_scale) / 2;
+            edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, tx0, ty0, opt_scale, t, sel ? c_opt_text_sel : c_opt_text);
+        }
+
         /* Skill mode: 2AI, AI/ALGO (left AI), ALGO/AI (right AI). */
         for (int i = 0; i < 3; i++)
         {
             int32_t bx0 = EDGEAI_UI_OPT_BLOCK_X + i * (EDGEAI_UI_OPT_W + EDGEAI_UI_OPT_GAP);
-            int32_t by0 = EDGEAI_UI_ROW3_Y + opt_yoff;
+            int32_t by0 = EDGEAI_UI_ROW4_Y + opt_yoff;
             int32_t bx1 = bx0 + EDGEAI_UI_OPT_W - 1;
             int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
 
@@ -948,7 +968,7 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         for (int i = 0; i < 2; i++)
         {
             int32_t bx0 = EDGEAI_UI_OPT2_BLOCK_X + i * (EDGEAI_UI_OPT_W + EDGEAI_UI_OPT_GAP);
-            int32_t by0 = EDGEAI_UI_ROW4_Y + opt_yoff;
+            int32_t by0 = EDGEAI_UI_ROW5_Y + opt_yoff;
             int32_t bx1 = bx0 + EDGEAI_UI_OPT_W - 1;
             int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
 
@@ -967,7 +987,7 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         for (int i = 0; i < 3; i++)
         {
             int32_t bx0 = EDGEAI_UI_OPT_BLOCK_X + i * (EDGEAI_UI_OPT_W + EDGEAI_UI_OPT_GAP);
-            int32_t by0 = EDGEAI_UI_ROW5_Y + opt_yoff;
+            int32_t by0 = EDGEAI_UI_ROW6_Y + opt_yoff;
             int32_t bx1 = bx0 + EDGEAI_UI_OPT_W - 1;
             int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
 
@@ -986,7 +1006,7 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         for (int i = 0; i < 2; i++)
         {
             int32_t bx0 = EDGEAI_UI_OPT2_BLOCK_X + i * (EDGEAI_UI_OPT_W + EDGEAI_UI_OPT_GAP);
-            int32_t by0 = EDGEAI_UI_ROW6_Y + opt_yoff;
+            int32_t by0 = EDGEAI_UI_ROW7_Y + opt_yoff;
             int32_t bx1 = bx0 + EDGEAI_UI_OPT_W - 1;
             int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
 
@@ -1005,7 +1025,7 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         for (int i = 0; i < 2; i++)
         {
             int32_t bx0 = EDGEAI_UI_OPT2_BLOCK_X + i * (EDGEAI_UI_OPT_W + EDGEAI_UI_OPT_GAP);
-            int32_t by0 = EDGEAI_UI_ROW7_Y + opt_yoff;
+            int32_t by0 = EDGEAI_UI_ROW8_Y + opt_yoff;
             int32_t bx1 = bx0 + EDGEAI_UI_OPT_W - 1;
             int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
 
@@ -1028,7 +1048,7 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
             const int32_t vol_right_w = 88;
 
             int32_t bx0 = vol_x;
-            int32_t by0 = EDGEAI_UI_ROW8_Y + opt_yoff;
+            int32_t by0 = EDGEAI_UI_ROW9_Y + opt_yoff;
             int32_t bx1 = bx0 + vol_left_w - 1;
             int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
             render_fill_round_rect(dst, w, h, tile_x0, tile_y0, bx0, by0, bx1, by1, EDGEAI_UI_OPT_H / 2, c_opt);
@@ -1070,7 +1090,7 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         /* New game. */
         {
             int32_t bx0 = EDGEAI_UI_NEW_X;
-            int32_t by0 = EDGEAI_UI_ROW9_Y + new_yoff;
+            int32_t by0 = EDGEAI_UI_ROW10_Y + new_yoff;
             int32_t bx1 = bx0 + EDGEAI_UI_NEW_W - 1;
             int32_t by1 = by0 + EDGEAI_UI_NEW_H - 1;
 

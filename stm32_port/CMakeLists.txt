@@ -57,6 +57,8 @@ add_executable(edgeai_smart_pong_stm32
     third_party/stm32cubeh7rs/Drivers/BSP/Components/gt911/gt911_reg.c
     third_party/stm32cubeh7rs/Drivers/BSP/Components/wm8904/wm8904.c
     third_party/stm32cubeh7rs/Drivers/BSP/Components/wm8904/wm8904_reg.c
+    third_party/stm32cubeh7rs/Drivers/CMSIS/DSP/Source/BasicMathFunctions/arm_abs_f32.c
+    third_party/stm32cubeh7rs/Drivers/CMSIS/DSP/Source/BasicMathFunctions/arm_dot_prod_f32.c
 )
 
 if(EDGEAI_ARM_GCC)
@@ -82,6 +84,7 @@ target_include_directories(edgeai_smart_pong_stm32 PRIVATE
     third_party/stm32cubeh7rs/Drivers/BSP/Components/mx66uw1g45g
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Inc
     third_party/stm32cubeh7rs/Drivers/CMSIS/Include
+    third_party/stm32cubeh7rs/Drivers/CMSIS/DSP/Include
     third_party/stm32cubeh7rs/Drivers/CMSIS/Device/ST/STM32H7RSxx/Include
 )
 
@@ -90,6 +93,7 @@ target_compile_definitions(edgeai_smart_pong_stm32 PRIVATE
     CONFIG_EDGEAI_USE_NPU=0
     USE_HAL_DRIVER
     STM32H7S7xx
+    ARM_MATH_CM7
     USE_NOR_MEMORY_MX66UW1G45G=0
     USE_RAM_MEMORY_APS256XX=1
 )

@@ -58,6 +58,7 @@ Display and touch are handled using STM32H7S78-DK board support stack (LCD + GT9
 - `Players`: `0`, `1`, `2`
 - `Difficulty`: `1`, `2`, `3`
 - `EDGEAI`: `ON`, `OFF` (UI label; no hardware NPU on STM32H7S78)
+- `DSP`: `ON`, `OFF` (`ON` enables CMSIS-DSP kernels in the EdgeAI path)
 - `SKILL`: `2AI`, `AI/ALGO`, `ALGO/AI`
 - `PERSIST`: `ON`, `OFF`
 - `MATCH`: `11`, `100`, `1K` (`1K` maps to `999` cap logic)
@@ -90,13 +91,13 @@ This port currently runs all AI math on the Cortex-M7 CPU (`CONFIG_EDGEAI_USE_NP
 Current DSP-style compute in this build:
 - Floating-point physics/intercept math at fixed timestep on M7 FPU.
 - EdgeAI correction layer computes bounded deltas over the analytic intercept, with disagreement/confidence gating before blend.
-- Lightweight numeric helpers in `ai.c` (clamp, abs, fixed-iteration Newton sqrt approximation, pseudo-random noise shaping).
+- `DSP ON` path uses CMSIS-DSP kernels in `ai.c` (`arm_abs_f32`, `arm_dot_prod_f32`, `arm_sqrt_f32`) for disagreement/confidence math.
+- `DSP OFF` path uses scalar C math fallback for identical gameplay flow without CMSIS-DSP kernels.
 - Runtime telemetry smoothing in the NPU HAL stub (`last_infer_us`, moving average `avg_infer_us`) and on-screen `N/F` + `L/M` reporting.
 - Audio synthesis path uses deterministic real-time DSP primitives in `audio_hal.c`: phase-accumulator oscillator, event-tone queueing, DMA half/full refill, and fixed-point (`Q12`) volume gain mapping.
 
 What is not enabled yet in this STM32 branch:
 - No on-chip NPU execution (STM32H7S78 has no integrated NPU).
-- No linked CMSIS-DSP kernel calls in the current game/AI path.
 - No on-device model-weight training; learning remains runtime control-parameter adaptation.
 
 Future acceleration hook points:
@@ -141,6 +142,6 @@ Restore points:
 ## Restore Points
 - Active golden/failsafe pointer: `docs/RESTORE_POINTS.md`
 - Current golden artifact:
-- `failsafe/edgeai_smart_pong_stm32_golden_20260323T142009Z.elf`
+- `failsafe/edgeai_smart_pong_stm32_golden_20260323T180311Z.elf`
 - Failsafe active artifact:
 - `failsafe/edgeai_smart_pong_stm32_failsafe_active.elf`

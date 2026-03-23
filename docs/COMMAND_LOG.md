@@ -44,3 +44,15 @@
 - Tuned EdgeAI high-speed cadence/headroom to improve faster-rally competitiveness without handicapping ALGO baseline math.
 - Promoted latest validated build to golden timestamp: `20260323T142009Z`.
 - Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.
+
+## 2026-03-23 (CMSIS-DSP setting + promotion)
+- Added new in-game `DSP` setting (`ON/OFF`) in the settings panel.
+- Wired real CMSIS-DSP kernels into AI runtime when `DSP=ON`:
+  - `arm_abs_f32`
+  - `arm_dot_prod_f32`
+  - `arm_sqrt_f32`
+- Added scalar fallback path when `DSP=OFF` with same control flow semantics.
+- Updated STM32 build wiring for CMSIS-DSP include/compile settings and source linkage.
+- Built successfully via `./tools/build_arm.sh`.
+- Promoted this build to golden timestamp: `20260323T180311Z`.
+- Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.
