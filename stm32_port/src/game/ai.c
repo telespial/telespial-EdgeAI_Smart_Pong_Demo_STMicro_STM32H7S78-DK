@@ -347,12 +347,6 @@ static ai_learn_profile_t *ai_profile_side(pong_game_t *g, bool right_side)
     return right_side ? &g->ai_profile_right : &g->ai_profile_left;
 }
 
-static const ai_learn_profile_t *ai_profile_side_const(const pong_game_t *g, bool right_side)
-{
-    if (!g) return NULL;
-    return right_side ? &g->ai_profile_right : &g->ai_profile_left;
-}
-
 static bool ai_learning_side_selected(const pong_game_t *g, bool right_side)
 {
     if (!g) return false;
@@ -793,51 +787,21 @@ static void ai_mirror_features_x(const float in[16], float out[16])
 
 static uint32_t ai_update_div(const pong_game_t *g, bool use_npu)
 {
+    (void)use_npu;
     uint8_t d = g ? g->difficulty : 2;
     if (d < 1) d = 1;
     if (d > 3) d = 3;
-
-    if (!use_npu)
-    {
-        switch (d)
-        {
-            case 1: return 5u;
-            case 2: return 3u;
-            default: return 2u;
-        }
-    }
-
-    /* In mixed SKILL modes, keep EdgeAI control cadence near ALGO cadence so the
-     * selected AI side is not handicapped by slower NPU refresh.
-     */
-    if (g && (g->ai_learn_mode != kAiLearnModeBoth))
-    {
-        /* Mixed-mode EdgeAI bias: refresh every frame for stronger tracking. */
-        (void)d;
-        return 1u;
-    }
-
-    /* NPU path: throttle updates to protect frame pacing, then adapt to observed latency. */
-    uint32_t div = 4u;
     switch (d)
     {
-        case 1: div = 9u; break;
-        case 2: div = 7u; break;
-        default: div = 5u; break;
+        case 1: return 5u;
+        case 2: return 3u;
+        default: return 2u;
     }
-
-    uint32_t avg_us = g ? g->npu.avg_infer_us : 0u;
-    if (avg_us > 14000u) div += 3u;
-    else if (avg_us > 9000u) div += 2u;
-    else if (avg_us > 5000u) div += 1u;
-
-    if (div < 2u) div = 2u;
-    if (div > 14u) div = 14u;
-    return div;
 }
 
 static float ai_noise(const pong_game_t *g, bool right_side)
 {
+    (void)right_side;
     uint8_t d = g ? g->difficulty : 2;
     if (d < 1) d = 1;
     if (d > 3) d = 3;
@@ -850,32 +814,13 @@ static float ai_noise(const pong_game_t *g, bool right_side)
         default: n = 0.007f; break;
     }
 
-    /* Show clear behavior difference when NPU path is disabled. */
-    if (g && !g->ai_enabled)
-    {
-        n *= 1.7f;
-    }
-
-    if (g && ai_learning_side_selected(g, right_side))
-    {
-        const ai_learn_profile_t *p = ai_profile_side_const(g, right_side);
-        if (p)
-        {
-            n *= p->noise_scale;
-        }
-        if (g->ai_learn_mode != kAiLearnModeBoth)
-        {
-            /* Mixed-mode EdgeAI bias: reduce noise variance. */
-            n *= 0.35f;
-        }
-    }
-
     n = clampf(n, 0.002f, 0.08f);
     return n;
 }
 
 static float ai_max_speed(const pong_game_t *g, bool right_side)
 {
+    (void)right_side;
     uint8_t d = g ? g->difficulty : 2;
     if (d < 1) d = 1;
     if (d > 3) d = 3;
@@ -887,36 +832,8 @@ static float ai_max_speed(const pong_game_t *g, bool right_side)
         default: s = 1.78f; break;
     }
 
-    if (g && !g->ai_enabled)
-    {
-        s *= 0.82f;
-    }
-
-    if (g && ai_learning_side_selected(g, right_side))
-    {
-        const ai_learn_profile_t *p = ai_profile_side_const(g, right_side);
-        if (p)
-        {
-            s *= p->speed_scale;
-        }
-        if (g->ai_learn_mode != kAiLearnModeBoth)
-        {
-            /* Mixed-mode EdgeAI bias: higher paddle speed envelope. */
-            s *= 1.45f;
-        }
-    }
-
     s = clampf(s, 0.70f, 2.60f);
     return s;
-}
-
-static float ai_lead_scale(const pong_game_t *g, bool right_side)
-{
-    if (!g) return 1.0f;
-    if (!ai_learning_side_selected(g, right_side)) return 1.0f;
-    const ai_learn_profile_t *p = ai_profile_side_const(g, right_side);
-    if (!p) return 1.0f;
-    return clampf(p->lead_scale, 0.70f, 2.00f);
 }
 
 static void ai_update_telemetry_window(pong_game_t *g)
@@ -961,14 +878,28 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
     if (div == 0u) div = 1u;
     if ((g->frame % div) == 0u)
     {
-        float y_hit = 0.5f;
-        float z_hit = 0.5f;
-        float t_hit = 0.0f;
+        float y_ref = 0.5f;
+        float z_ref = 0.5f;
+        float t_ref = 0.0f;
+        float y_hit = y_ref;
+        float z_hit = z_ref;
         bool used_npu = false;
-        float npu_confidence = 1.0f;
+        float npu_confidence = 0.0f;
 
         if (ball_toward)
         {
+            if (right_side)
+            {
+                ai_predict_right(g, dt, &y_ref, &z_ref, &t_ref);
+            }
+            else
+            {
+                ai_predict_left(g, dt, &y_ref, &z_ref, &t_ref);
+            }
+
+            y_hit = y_ref;
+            z_hit = z_ref;
+
             if (use_npu)
             {
                 float feat[16];
@@ -987,86 +918,27 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                 used_npu = npu_hal_predict(&g->npu, use_feat, &pred);
                 if (used_npu)
                 {
-                    y_hit = pred.y_hit;
-                    z_hit = pred.z_hit;
-                    t_hit = pred.t_hit;
-
-                    /* In mixed SKILL modes, blend NPU with analytic prediction to
-                     * keep EdgeAI competitive against fixed ALGO baseline.
+                    /* EDGEAI is an additive correction layer over the exact same
+                     * analytic baseline used by ALGO.
                      */
-                    if (g->ai_learn_mode != kAiLearnModeBoth)
-                    {
-                        float y_ref = 0.5f;
-                        float z_ref = 0.5f;
-                        float t_ref = 0.0f;
-                        if (right_side)
-                        {
-                            ai_predict_right(g, dt, &y_ref, &z_ref, &t_ref);
-                        }
-                        else
-                        {
-                            ai_predict_left(g, dt, &y_ref, &z_ref, &t_ref);
-                        }
+                    float dy_raw = pred.y_hit - y_ref;
+                    float dz_raw = pred.z_hit - z_ref;
+                    float dt_raw = pred.t_hit - t_ref;
 
-                        /* Confidence gate: when NPU diverges from analytic physics, bias heavily
-                         * toward the analytic path to preserve competitiveness.
-                         */
-                        float dy = absf(y_hit - y_ref);
-                        float dz = absf(z_hit - z_ref);
-                        float dtau = absf(t_hit - t_ref);
-                        float disagreement = dy + dz + (0.60f * dtau);
+                    float dy = clampf(dy_raw, -0.18f, 0.18f);
+                    float dz = clampf(dz_raw, -0.18f, 0.18f);
+                    float dtau = clampf(dt_raw, -0.22f, 0.22f);
 
-                        float npu_w = 0.65f;
-                        if (disagreement >= 0.28f)
-                        {
-                            npu_w = 0.0f;
-                        }
-                        else if (disagreement > 0.0f)
-                        {
-                            float trust = 1.0f - (disagreement / 0.28f);
-                            npu_w *= clampf(trust, 0.0f, 1.0f);
-                        }
-                        npu_confidence = clampf(1.0f - (disagreement / 0.28f), 0.0f, 1.0f);
+                    float disagreement = absf(dy) + absf(dz) + (0.60f * absf(dtau));
+                    npu_confidence = clampf(1.0f - (disagreement / 0.24f), 0.0f, 1.0f);
 
-                        const float ref_w = 1.0f - npu_w;
-                        y_hit = (ref_w * y_ref) + (npu_w * y_hit);
-                        z_hit = (ref_w * z_ref) + (npu_w * z_hit);
-                        t_hit = (ref_w * t_ref) + (npu_w * t_hit);
-                    }
+                    /* Keep the layer bounded: EDGEAI can improve targeting, but
+                     * does not alter control envelopes or cadence.
+                     */
+                    float layer_w = 0.35f * npu_confidence;
+                    y_hit = y_ref + (dy * layer_w);
+                    z_hit = z_ref + (dz * layer_w);
                 }
-            }
-
-            if (!used_npu)
-            {
-                if (right_side)
-                {
-                    ai_predict_right(g, dt, &y_hit, &z_hit, &t_hit);
-                }
-                else
-                {
-                    ai_predict_left(g, dt, &y_hit, &z_hit, &t_hit);
-                }
-            }
-
-            /* Learned anticipation: shift target along projected travel based on side profile. */
-            {
-                float lead = ai_lead_scale(g, right_side);
-                /* Give EdgeAI a little more anticipation at high ball speed. */
-                if (side_edgeai)
-                {
-                    float vx = g->ball.vx;
-                    float vy = g->ball.vy;
-                    float vz = g->ball.vz;
-                    float vmag = sqrtf_approx((vx * vx) + (vy * vy) + (vz * vz));
-                    float hs = clampf((vmag - 1.10f) * (1.0f / 1.30f), 0.0f, 1.0f);
-                    float bonus = 0.10f + 0.12f * hs;
-                    if (g->ai_learn_mode != kAiLearnModeBoth) bonus += 0.14f;
-                    lead *= (1.0f + bonus * hs);
-                }
-                float t_use = clampf(t_hit, 0.0f, 0.80f);
-                float k = (lead - 1.0f) * 0.45f;
-                y_hit += g->ball.vy * t_use * k;
-                z_hit += g->ball.vz * t_use * k;
             }
 
             if (side_edgeai)

@@ -28,3 +28,12 @@
 - Promoted latest aggressive EdgeAI tuning build to new golden timestamp: `20260323T004007Z`.
 - Refreshed `failsafe_active` to match the same build output.
 - Updated restore-pointer docs/scripts and regenerated `failsafe/SHA256SUMS.txt`.
+
+## 2026-03-23 (Fairness + speed baseline)
+- Removed top-left accelerometer mini-widget and associated accel path.
+- Updated settings UI label from `NPU` to `EDGEAI` while preserving ON/OFF control behavior.
+- Reworked AI architecture for fairness: ALGO and EDGEAI now share the same base control math.
+- EDGEAI now acts as a bounded additive prediction-correction layer over analytic intercept.
+- Increased startup serve speed by 50%.
+- Promoted this build to golden timestamp: `20260323T135322Z`.
+- Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.

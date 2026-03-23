@@ -210,6 +210,9 @@ static void physics_get_tuning(const pong_game_t *g, float *serve_speed, float *
     if (serve_speed) *serve_speed *= s;
     if (vlim) *vlim *= s;
 
+    /* Requested tuning: increase startup serve pace by +50%. */
+    if (serve_speed) *serve_speed *= 1.50f;
+
     /* Partial cap remains for playability, but faster than prior 50%-reduced setting. */
     if (vlim) *vlim *= 0.75f;
 }

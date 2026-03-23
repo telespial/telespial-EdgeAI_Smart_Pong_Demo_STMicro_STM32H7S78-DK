@@ -17,11 +17,6 @@ typedef struct
 
     bool mode_toggle;
 
-    float accel_ax;
-    float accel_ay;
-    bool accel_active;
-    bool accel_bang;
-
     bool touch_active;
     bool touch_pressed;
     float touch_x;

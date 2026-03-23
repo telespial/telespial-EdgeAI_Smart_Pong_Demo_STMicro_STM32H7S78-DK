@@ -100,11 +100,6 @@ typedef struct
     uint8_t speedpp_stage;
     uint16_t speedpp_next_threshold;
 
-    /* Latest accel sample (for UI/debug + optional game effects). */
-    bool accel_active;
-    float accel_ax;
-    float accel_ay;
-
     /* Runtime AI/NPU telemetry. */
     uint32_t ai_telemetry_start_cycles;
     uint32_t ai_npu_attempts_window;

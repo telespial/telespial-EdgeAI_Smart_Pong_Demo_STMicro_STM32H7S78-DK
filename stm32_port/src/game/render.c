@@ -821,53 +821,6 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         render_side_role_text(dst, w, h, tile_x0, tile_y0, right_cx, role_y, render_side_role(g, true));
     }
 
-    /* Tilt indicator (P0): shows accel vector used to nudge the ball.
-     * Helps confirm the accelerometer is alive without needing a serial console.
-     */
-    if (g->mode == kGameModeZeroPlayer)
-    {
-        const int32_t bx0 = 12;
-        const int32_t by0 = pill_y0;
-        const int32_t bw = 28;
-        const int32_t bh = EDGEAI_UI_PILL_H;
-        const int32_t bx1 = bx0 + bw - 1;
-        const int32_t by1 = by0 + bh - 1;
-
-        const uint16_t c_ind_bg = sw_pack_rgb565_u8(20, 21, 24);
-        const uint16_t c_ind_border = sw_pack_rgb565_u8(52, 54, 58);
-        const uint16_t c_ind_dot = sw_pack_rgb565_u8(214, 215, 217);
-        const uint16_t c_ind_dim = sw_pack_rgb565_u8(120, 122, 126);
-
-        render_fill_round_rect(dst, w, h, tile_x0, tile_y0, bx0, by0, bx1, by1, bh / 2, c_ind_bg);
-        sw_render_line(dst, w, h, tile_x0, tile_y0, bx0, by0, bx1, by0, c_ind_border);
-        sw_render_line(dst, w, h, tile_x0, tile_y0, bx0, by1, bx1, by1, c_ind_border);
-
-        int32_t cx = bx0 + bw / 2;
-        int32_t cy = by0 + bh / 2;
-        int32_t r = 2;
-
-        if (g->accel_active)
-        {
-            float ax = clampf(g->accel_ax, -1.0f, 1.0f);
-            float ay = clampf(g->accel_ay, -1.0f, 1.0f);
-
-            int32_t max_dx = (bw / 2) - 6;
-            int32_t max_dy = (bh / 2) - 6;
-            if (max_dx < 0) max_dx = 0;
-            if (max_dy < 0) max_dy = 0;
-
-            int32_t dx = (int32_t)(ax * (float)max_dx);
-            int32_t dy = (int32_t)(ay * (float)max_dy);
-            sw_render_filled_circle(dst, w, h, tile_x0, tile_y0, cx + dx, cy + dy, r, c_ind_dot);
-        }
-        else
-        {
-            /* No accel present: draw a subtle X. */
-            sw_render_line(dst, w, h, tile_x0, tile_y0, bx0 + 6, by0 + 6, bx1 - 6, by1 - 6, c_ind_dim);
-            sw_render_line(dst, w, h, tile_x0, tile_y0, bx1 - 6, by0 + 6, bx0 + 6, by1 - 6, c_ind_dim);
-        }
-    }
-
     if (!g->menu_open && !g->help_open) return;
 
     if (g->menu_open)
@@ -899,7 +852,7 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         /* Row labels. */
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW0_Y + label_yoff, title_scale, "PLAYERS", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW1_Y + label_yoff, title_scale, "LEVEL", c_opt_text);
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW2_Y + label_yoff, title_scale, "NPU", c_opt_text);
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW2_Y + label_yoff, title_scale, "EDGEAI", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW3_Y + label_yoff, title_scale, "SKILL", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW4_Y + label_yoff, title_scale, "PERSIST", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW5_Y + label_yoff, title_scale, "MATCH", c_opt_text);
