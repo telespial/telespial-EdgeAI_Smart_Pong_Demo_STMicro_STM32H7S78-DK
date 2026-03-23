@@ -18,6 +18,7 @@ add_executable(edgeai_smart_pong_stm32
     src/game/modes.c
     src/game/physics.c
     src/game/render.c
+    src/platform/audio_hal.c
     src/platform/display_hal.c
     src/platform/input_hal.c
     src/platform/npu_hal_stub.c
@@ -35,21 +36,27 @@ add_executable(edgeai_smart_pong_stm32
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_gpio.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_i2c.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_i2c_ex.c
+    third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_i2s.c
+    third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_i2s_ex.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_lptim.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_ltdc.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_ltdc_ex.c
+    third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_mdf.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_pwr.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_pwr_ex.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_rcc.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_rcc_ex.c
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Src/stm32h7rsxx_hal_xspi.c
     third_party/stm32cubeh7rs/Drivers/BSP/STM32H7S78-DK/stm32h7s78_discovery_lcd.c
+    third_party/stm32cubeh7rs/Drivers/BSP/STM32H7S78-DK/stm32h7s78_discovery_audio.c
     third_party/stm32cubeh7rs/Drivers/BSP/STM32H7S78-DK/stm32h7s78_discovery_bus.c
     third_party/stm32cubeh7rs/Drivers/BSP/STM32H7S78-DK/stm32h7s78_discovery_ts.c
     third_party/stm32cubeh7rs/Drivers/BSP/STM32H7S78-DK/stm32h7s78_discovery_xspi.c
     third_party/stm32cubeh7rs/Drivers/BSP/Components/aps256xx/aps256xx.c
     third_party/stm32cubeh7rs/Drivers/BSP/Components/gt911/gt911.c
     third_party/stm32cubeh7rs/Drivers/BSP/Components/gt911/gt911_reg.c
+    third_party/stm32cubeh7rs/Drivers/BSP/Components/wm8904/wm8904.c
+    third_party/stm32cubeh7rs/Drivers/BSP/Components/wm8904/wm8904_reg.c
 )
 
 if(EDGEAI_ARM_GCC)
@@ -70,6 +77,7 @@ target_include_directories(edgeai_smart_pong_stm32 PRIVATE
     third_party/stm32cubeh7rs/Drivers/BSP/Components/rk050hr18
     third_party/stm32cubeh7rs/Drivers/BSP/Components/aps256xx
     third_party/stm32cubeh7rs/Drivers/BSP/Components/gt911
+    third_party/stm32cubeh7rs/Drivers/BSP/Components/wm8904
     third_party/stm32cubeh7rs/Drivers/BSP/Components/mx25uw25645g
     third_party/stm32cubeh7rs/Drivers/BSP/Components/mx66uw1g45g
     third_party/stm32cubeh7rs/Drivers/STM32H7RSxx_HAL_Driver/Inc

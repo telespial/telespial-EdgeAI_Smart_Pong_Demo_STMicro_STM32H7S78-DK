@@ -57,6 +57,15 @@ static uint16_t game_match_target_from_index(int32_t idx)
     return EDGEAI_MATCH_TARGET_1K;
 }
 
+static void game_adjust_volume(pong_game_t *g, int32_t delta)
+{
+    if (!g) return;
+    int32_t v = (int32_t)g->audio_volume + delta;
+    if (v < 0) v = 0;
+    if (v > 100) v = 100;
+    g->audio_volume = (uint8_t)v;
+}
+
 static void game_start_countdown(pong_game_t *g)
 {
     if (!g) return;
@@ -333,10 +342,31 @@ static void ui_handle_press(pong_game_t *g, float touch_x, float touch_y)
         }
     }
 
+    /* Volume: step down/up buttons. */
+    {
+        const int32_t vol_x = EDGEAI_UI_PANEL_X + 12;
+        const int32_t vol_left_w = 88;
+        const int32_t vol_center_w = 60;
+        const int32_t vol_right_w = 88;
+        int32_t left_bx = vol_x;
+        int32_t right_bx = vol_x + vol_left_w + vol_center_w;
+        int32_t by = EDGEAI_UI_ROW8_Y + opt_y0;
+        if (hit_rect(px, py, left_bx, by, vol_left_w, EDGEAI_UI_OPT_H))
+        {
+            game_adjust_volume(g, -5);
+            return;
+        }
+        if (hit_rect(px, py, right_bx, by, vol_right_w, EDGEAI_UI_OPT_H))
+        {
+            game_adjust_volume(g, +5);
+            return;
+        }
+    }
+
     /* New game. */
     {
         int32_t bx = EDGEAI_UI_NEW_X;
-        int32_t by = EDGEAI_UI_ROW8_Y + new_y0;
+        int32_t by = EDGEAI_UI_ROW9_Y + new_y0;
         if (hit_rect(px, py, bx, by, EDGEAI_UI_NEW_W, EDGEAI_UI_NEW_H))
         {
             g->score_total_left = 0u;
@@ -360,6 +390,7 @@ void game_init(pong_game_t *g)
     g->persistent_learning = false;
     g->speedpp_enabled = true;
     g->target_overlay_enabled = false;
+    g->audio_volume = 60u;
     g->ai_learn_mode = kAiLearnModeAiAlgo;
     g->menu_open = false;
     g->help_open = false;
@@ -375,6 +406,8 @@ void game_init(pong_game_t *g)
     g->match_over_start_cycles = 0u;
     g->countdown_us_left = 0u;
     g->countdown_start_cycles = 0u;
+    g->sfx_wall_bounce_count = 0u;
+    g->sfx_paddle_hit_count = 0u;
 
     g->paddle_l.x_plane = 0.06f;
     g->paddle_r.x_plane = 0.94f;
@@ -409,6 +442,8 @@ void game_init(pong_game_t *g)
     g->ai_fallback_window = 0u;
     g->ai_npu_rate_hz = 0u;
     g->ai_fallback_rate_hz = 0u;
+    g->sfx_wall_bounce_count = 0u;
+    g->sfx_paddle_hit_count = 0u;
     g->ai_left_active = false;
     g->ai_right_active = false;
 

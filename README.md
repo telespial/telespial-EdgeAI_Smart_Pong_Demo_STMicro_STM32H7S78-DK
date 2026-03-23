@@ -63,6 +63,7 @@ Display and touch are handled using STM32H7S78-DK board support stack (LCD + GT9
 - `MATCH`: `11`, `100`, `1K` (`1K` maps to `999` cap logic)
 - `TARGET`: `ON`, `OFF`
 - `SPEED++`: `ON`, `OFF`
+- `VOL`: `VOL DN` / `UP` in 5% steps (`0..100`, default `60`)
 - `New Game`: immediate score reset and WINS reset to `000`
 
 ## AI Runtime In This STM32 Port
@@ -74,6 +75,7 @@ Behavior:
 - Per-side target prediction outputs `(y_hit, z_hit, t_hit)`
 - ALGO and EDGEAI share identical base cadence, speed limits, and noise
 - EDGEAI applies a bounded prediction-correction layer on top of analytic intercept
+- High-speed tuning raises EdgeAI refresh cadence and movement headroom to remain competitive at faster ball speeds
 - Mixed modes (`AI/ALGO`, `ALGO/AI`) support side-to-side comparison
 - Confidence gate bounds predictor correction against analytic physics
 - If predictor path fails, control falls back to analytic path
@@ -91,6 +93,8 @@ Important:
 - Telemetry overlay (`N/F` rates and `L/M` latency fields)
 - SKILL side-selectable adaptive AI vs ALGO baseline
 - Optional `SPEED++` progression
+- Event SFX audio on STM32H7S78-DK (wall, paddle, score, win tune)
+- In-menu volume control (`VOL DN`/`UP`) with live audio update
 - AI-driven serve variation with directional bias
 - Startup serve speed increased by 50% from prior baseline
 
@@ -118,6 +122,6 @@ Restore points:
 ## Restore Points
 - Active golden/failsafe pointer: `docs/RESTORE_POINTS.md`
 - Current golden artifact:
-- `failsafe/edgeai_smart_pong_stm32_golden_20260323T135322Z.elf`
+- `failsafe/edgeai_smart_pong_stm32_golden_20260323T142009Z.elf`
 - Failsafe active artifact:
 - `failsafe/edgeai_smart_pong_stm32_failsafe_active.elf`

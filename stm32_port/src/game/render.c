@@ -858,7 +858,14 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW5_Y + label_yoff, title_scale, "MATCH", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW6_Y + label_yoff, title_scale, "TARGET", c_opt_text);
         edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW7_Y + label_yoff, title_scale, "SPEED++", c_opt_text);
-        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW8_Y + label_yoff, title_scale, "NEW GAME", c_opt_text);
+        {
+            const int32_t volume_scale = 2;
+            const int32_t volume_label_yoff = (EDGEAI_UI_ROW_H - 7 * volume_scale) / 2;
+            edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0,
+                                          EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW8_Y + volume_label_yoff,
+                                          volume_scale, "VOL", c_opt_text);
+        }
+        edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, EDGEAI_UI_LABEL_X, EDGEAI_UI_ROW9_Y + label_yoff, title_scale, "NEW GAME", c_opt_text);
 
         /* Players: 0/1/2 */
         for (int i = 0; i < 3; i++)
@@ -1013,10 +1020,57 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
             edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, tx0, ty0, opt_scale, t, sel ? c_opt_text_sel : c_opt_text);
         }
 
+        /* Volume: large DOWN / UP buttons with centered numeric value. */
+        {
+            const int32_t vol_x = EDGEAI_UI_PANEL_X + 12;
+            const int32_t vol_left_w = 88;
+            const int32_t vol_center_w = 60;
+            const int32_t vol_right_w = 88;
+
+            int32_t bx0 = vol_x;
+            int32_t by0 = EDGEAI_UI_ROW8_Y + opt_yoff;
+            int32_t bx1 = bx0 + vol_left_w - 1;
+            int32_t by1 = by0 + EDGEAI_UI_OPT_H - 1;
+            render_fill_round_rect(dst, w, h, tile_x0, tile_y0, bx0, by0, bx1, by1, EDGEAI_UI_OPT_H / 2, c_opt);
+            {
+                const int32_t vol_text_scale = 2;
+                edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0,
+                                              bx0 + (vol_left_w - edgeai_text5x7_width(vol_text_scale, "VOL DN")) / 2,
+                                              by0 + (EDGEAI_UI_OPT_H - 7 * vol_text_scale) / 2,
+                                              vol_text_scale, "VOL DN", c_opt_text);
+            }
+
+            int32_t cbx0 = vol_x + vol_left_w;
+            int32_t cbx1 = cbx0 + vol_center_w - 1;
+            render_fill_round_rect(dst, w, h, tile_x0, tile_y0, cbx0, by0, cbx1, by1, EDGEAI_UI_OPT_H / 2, c_panel);
+
+            int32_t rbx0 = cbx1 + 1;
+            int32_t rbx1 = rbx0 + vol_right_w - 1;
+            render_fill_round_rect(dst, w, h, tile_x0, tile_y0, rbx0, by0, rbx1, by1, EDGEAI_UI_OPT_H / 2, c_opt);
+            {
+                const int32_t vol_text_scale = 2;
+                edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0,
+                                              rbx0 + (vol_right_w - edgeai_text5x7_width(vol_text_scale, "UP")) / 2,
+                                              by0 + (EDGEAI_UI_OPT_H - 7 * vol_text_scale) / 2,
+                                              vol_text_scale, "UP", c_opt_text);
+            }
+
+            char t[4];
+            t[0] = (char)('0' + ((g->audio_volume / 100u) % 10u));
+            t[1] = (char)('0' + ((g->audio_volume / 10u) % 10u));
+            t[2] = (char)('0' + (g->audio_volume % 10u));
+            t[3] = 0;
+            const int32_t vol_value_scale = 2;
+            int32_t tw = edgeai_text5x7_width(vol_value_scale, t);
+            int32_t tx0 = cbx0 + (vol_center_w - tw) / 2;
+            int32_t ty0 = by0 + (EDGEAI_UI_OPT_H - 7 * vol_value_scale) / 2;
+            edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, tx0, ty0, vol_value_scale, t, c_opt_text);
+        }
+
         /* New game. */
         {
             int32_t bx0 = EDGEAI_UI_NEW_X;
-            int32_t by0 = EDGEAI_UI_ROW8_Y + new_yoff;
+            int32_t by0 = EDGEAI_UI_ROW9_Y + new_yoff;
             int32_t bx1 = bx0 + EDGEAI_UI_NEW_W - 1;
             int32_t by1 = by0 + EDGEAI_UI_NEW_H - 1;
 

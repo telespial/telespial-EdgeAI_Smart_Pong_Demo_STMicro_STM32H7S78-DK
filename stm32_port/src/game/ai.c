@@ -787,10 +787,15 @@ static void ai_mirror_features_x(const float in[16], float out[16])
 
 static uint32_t ai_update_div(const pong_game_t *g, bool use_npu)
 {
-    (void)use_npu;
     uint8_t d = g ? g->difficulty : 2;
     if (d < 1) d = 1;
     if (d > 3) d = 3;
+    float speed = g ? absf(g->ball.vx) : 0.0f;
+
+    /* At higher ball speeds, refresh targets every frame to prevent laggy AI. */
+    if (speed > 3.0f) return 1u;
+    if (use_npu && speed > 2.2f) return 1u;
+
     switch (d)
     {
         case 1: return 5u;
@@ -824,15 +829,15 @@ static float ai_max_speed(const pong_game_t *g, bool right_side)
     uint8_t d = g ? g->difficulty : 2;
     if (d < 1) d = 1;
     if (d > 3) d = 3;
-    float s = 1.48f;
+    float s = 1.74f;
     switch (d)
     {
-        case 1: s = 1.22f; break;
-        case 2: s = 1.48f; break;
-        default: s = 1.78f; break;
+        case 1: s = 1.42f; break;
+        case 2: s = 1.74f; break;
+        default: s = 2.15f; break;
     }
 
-    s = clampf(s, 0.70f, 2.60f);
+    s = clampf(s, 0.70f, 3.10f);
     return s;
 }
 
@@ -925,17 +930,17 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                     float dz_raw = pred.z_hit - z_ref;
                     float dt_raw = pred.t_hit - t_ref;
 
-                    float dy = clampf(dy_raw, -0.18f, 0.18f);
-                    float dz = clampf(dz_raw, -0.18f, 0.18f);
-                    float dtau = clampf(dt_raw, -0.22f, 0.22f);
+                    float dy = clampf(dy_raw, -0.24f, 0.24f);
+                    float dz = clampf(dz_raw, -0.24f, 0.24f);
+                    float dtau = clampf(dt_raw, -0.30f, 0.30f);
 
                     float disagreement = absf(dy) + absf(dz) + (0.60f * absf(dtau));
-                    npu_confidence = clampf(1.0f - (disagreement / 0.24f), 0.0f, 1.0f);
+                    npu_confidence = clampf(1.0f - (disagreement / 0.36f), 0.0f, 1.0f);
 
                     /* Keep the layer bounded: EDGEAI can improve targeting, but
                      * does not alter control envelopes or cadence.
                      */
-                    float layer_w = 0.35f * npu_confidence;
+                    float layer_w = 0.62f * npu_confidence;
                     y_hit = y_ref + (dy * layer_w);
                     z_hit = z_ref + (dz * layer_w);
                 }
@@ -946,6 +951,13 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                 ai_learn_profile_t *lp = ai_profile_side(g, right_side);
                 if (lp)
                 {
+                    float lead_gain = clampf((lp->lead_scale - 1.0f) * 0.25f, -0.18f, 0.28f);
+                    if (t_ref > 0.0f)
+                    {
+                        y_hit += g->ball.vy * t_ref * lead_gain;
+                        z_hit += g->ball.vz * t_ref * lead_gain;
+                    }
+
                     if (g->ai_learn_mode == kAiLearnModeBoth)
                     {
                         uint8_t style = ai_style_select(g, lp);
@@ -957,6 +969,11 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
 
             /* Add small noise to avoid perfect play. */
             float noise = ai_noise(g, right_side);
+            if (side_edgeai)
+            {
+                ai_learn_profile_t *lp = ai_profile_side(g, right_side);
+                if (lp) noise *= clampf(lp->noise_scale, 0.55f, 1.55f);
+            }
             y_hit += rand_f(g, -noise, noise);
             z_hit += rand_f(g, -noise, noise);
         }
@@ -975,6 +992,12 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
     float prev_z = p->z;
 
     float max_speed = ai_max_speed(g, right_side);
+    if (side_edgeai)
+    {
+        ai_learn_profile_t *lp = ai_profile_side(g, right_side);
+        if (lp) max_speed *= clampf(lp->speed_scale, 0.85f, 1.55f);
+    }
+    max_speed = clampf(max_speed, 0.70f, 3.40f);
     float max_step = max_speed * dt;
 
     float dy = p->target_y - p->y;

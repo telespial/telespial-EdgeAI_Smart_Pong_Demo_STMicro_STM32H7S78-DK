@@ -37,3 +37,10 @@
 - Increased startup serve speed by 50%.
 - Promoted this build to golden timestamp: `20260323T135322Z`.
 - Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.
+
+## 2026-03-23 (Audio + latest restore promotion)
+- Added STM32 board audio path with event tones (wall, paddle, point, win).
+- Added settings `VOL` control (`VOL DN`/`UP`, 0..100, default 60) with live update.
+- Tuned EdgeAI high-speed cadence/headroom to improve faster-rally competitiveness without handicapping ALGO baseline math.
+- Promoted latest validated build to golden timestamp: `20260323T142009Z`.
+- Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.

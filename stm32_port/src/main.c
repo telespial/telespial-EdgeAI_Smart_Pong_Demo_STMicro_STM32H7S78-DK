@@ -5,6 +5,7 @@
 
 #include "game/game.h"
 #include "game/render.h"
+#include "platform/audio_hal.h"
 #include "platform/display_hal.h"
 #include "platform/input_hal.h"
 #include "platform/time_hal.h"
@@ -56,6 +57,7 @@ int main(void)
 
     input_hal_t input;
     (void)input_hal_init(&input);
+    (void)audio_hal_init();
 
     pong_game_t game;
     game_init(&game);
@@ -65,6 +67,17 @@ int main(void)
 
     const uint32_t frame_us = 1000000u / (uint32_t)EDGEAI_FIXED_FPS;
     const float dt = 1.0f / (float)EDGEAI_FIXED_FPS;
+    uint16_t prev_score_left = game.score.left;
+    uint16_t prev_score_right = game.score.right;
+    bool prev_match_over = game.match_over;
+    uint8_t prev_audio_volume = game.audio_volume;
+    audio_hal_set_volume(prev_audio_volume);
+    uint32_t last_wall_sfx_cycles = 0u;
+    uint32_t last_paddle_sfx_cycles = 0u;
+    uint32_t last_point_sfx_cycles = 0u;
+    const uint32_t wall_sfx_min_gap_us = 50000u;
+    const uint32_t paddle_sfx_min_gap_us = 75000u;
+    const uint32_t point_sfx_min_gap_us = 150000u;
 
     for (;;)
     {
@@ -74,12 +87,60 @@ int main(void)
         input_hal_poll(&input, &in);
 
         game_step(&game, &in, dt);
+        if (game.audio_volume != prev_audio_volume)
+        {
+            audio_hal_set_volume(game.audio_volume);
+            prev_audio_volume = game.audio_volume;
+        }
+        if (game.sfx_wall_bounce_count > 0u)
+        {
+            uint32_t now = time_hal_cycles();
+            if ((last_wall_sfx_cycles == 0u) || (time_hal_elapsed_us(last_wall_sfx_cycles) >= wall_sfx_min_gap_us))
+            {
+                audio_hal_queue_wall_bounce(1u);
+                last_wall_sfx_cycles = now;
+            }
+            game.sfx_wall_bounce_count = 0u;
+        }
+        if (game.sfx_paddle_hit_count > 0u)
+        {
+            uint32_t now = time_hal_cycles();
+            if ((last_paddle_sfx_cycles == 0u) || (time_hal_elapsed_us(last_paddle_sfx_cycles) >= paddle_sfx_min_gap_us))
+            {
+                audio_hal_queue_paddle_hit(1u);
+                last_paddle_sfx_cycles = now;
+            }
+            game.sfx_paddle_hit_count = 0u;
+        }
+        if ((game.score.left > prev_score_left) || (game.score.right > prev_score_right))
+        {
+            uint32_t now = time_hal_cycles();
+            if ((last_point_sfx_cycles == 0u) || (time_hal_elapsed_us(last_point_sfx_cycles) >= point_sfx_min_gap_us))
+            {
+                audio_hal_queue_point_scored(1u);
+                last_point_sfx_cycles = now;
+            }
+        }
+        if (!prev_match_over && game.match_over)
+        {
+            audio_hal_queue_win_tune();
+        }
+        prev_match_over = game.match_over;
+        prev_score_left = game.score.left;
+        prev_score_right = game.score.right;
+        audio_hal_update();
         render_draw_frame(&render, &game);
 
         uint32_t elapsed_us = time_hal_elapsed_us(start);
-        if (elapsed_us < frame_us)
+        while (elapsed_us < frame_us)
         {
-            time_hal_delay_us(frame_us - elapsed_us);
+            audio_hal_update();
+            uint32_t remaining = frame_us - elapsed_us;
+            if (remaining > 300u)
+            {
+                time_hal_delay_us(200u);
+            }
+            elapsed_us = time_hal_elapsed_us(start);
         }
     }
 }

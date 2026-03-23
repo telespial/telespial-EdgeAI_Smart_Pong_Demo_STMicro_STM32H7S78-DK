@@ -2,12 +2,12 @@
 
 ## Snapshot
 - Date: 2026-03-23
-- State: running on STM32H7S78-DK, fairness-tuned AI and refreshed golden/failsafe restore points
+- State: running on STM32H7S78-DK, fairness-tuned high-speed AI with promoted golden/failsafe restore points
 - Baseline source: EdgeAI_smart_pong_demo_NXP_FRDM-MCXN947
 - STM32 implementation: stm32_port/
 
 ## Current Milestone
-- M6: Fair-base EdgeAI layer tuning validated and promoted to golden/failsafe
+- M7: Fair-base EdgeAI plus STM32 audio/volume integration validated and promoted to golden/failsafe
 
 ## Achieved
 - Build + flash loop stable via tools/build_arm.sh and tools/flash_first.sh
@@ -19,10 +19,13 @@
 - CPU predictor backend enabled in src/platform/npu_hal_stub.c (non-hardware-NPU path)
 - AI tuned so ALGO and EDGEAI use same base control math; EDGEAI is additive correction layer only
 - Startup serve pace increased by 50%
+- High-speed EdgeAI cadence/headroom tuning added for faster rallies
+- STM32 event audio added (wall, paddle, point, win) with in-menu `VOL` setting
+- Latest promoted restore timestamp: `20260323T142009Z`
 - Golden + failsafe artifacts captured in failsafe/
 
 ## Next Milestone
-- M7: Touch robustness closeout and formal smoke checklist signoff
+- M8: Touch robustness closeout and formal smoke checklist signoff
 
 ## Current Artifacts
 - Current ELF: stm32_port/build-arm/edgeai_smart_pong_stm32.elf

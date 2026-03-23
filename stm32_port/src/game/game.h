@@ -67,6 +67,7 @@ typedef struct
     bool persistent_learning;
     bool speedpp_enabled;
     bool target_overlay_enabled;
+    uint8_t audio_volume; /* 0..100 (%), 0 = mute */
     bool menu_open;
     bool help_open;
     bool ui_block_touch;
@@ -88,6 +89,8 @@ typedef struct
     uint32_t match_over_start_cycles;
     uint32_t countdown_us_left;
     uint32_t countdown_start_cycles;
+    uint8_t sfx_wall_bounce_count;
+    uint8_t sfx_paddle_hit_count;
 
     float last_hit_dy;
     float last_hit_dz;

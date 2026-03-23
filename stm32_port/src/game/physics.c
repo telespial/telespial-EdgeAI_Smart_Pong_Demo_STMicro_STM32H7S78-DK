@@ -22,6 +22,13 @@ static inline float signf(float v)
     return (v < 0.0f) ? -1.0f : 1.0f;
 }
 
+static void physics_sfx_inc(uint8_t *counter, uint8_t add)
+{
+    if (!counter || add == 0u) return;
+    uint16_t sum = (uint16_t)(*counter) + (uint16_t)add;
+    *counter = (sum > 255u) ? 255u : (uint8_t)sum;
+}
+
 static inline uint32_t xorshift32(uint32_t x)
 {
     x ^= x << 13;
@@ -210,11 +217,10 @@ static void physics_get_tuning(const pong_game_t *g, float *serve_speed, float *
     if (serve_speed) *serve_speed *= s;
     if (vlim) *vlim *= s;
 
-    /* Requested tuning: increase startup serve pace by +50%. */
-    if (serve_speed) *serve_speed *= 1.50f;
-
-    /* Partial cap remains for playability, but faster than prior 50%-reduced setting. */
-    if (vlim) *vlim *= 0.75f;
+    /* Raise overall game pace so long sessions do not feel sluggish. */
+    if (serve_speed) *serve_speed *= 1.80f;
+    if (speed_up) *speed_up = 1.0f + ((*speed_up - 1.0f) * 1.50f);
+    if (vlim) *vlim *= 1.20f;
 }
 
 void physics_reset_ball(pong_game_t *g, int serve_dir)
@@ -306,6 +312,7 @@ static bool physics_paddle_overlap_yz(const pong_paddle_t *p, float y, float z, 
 static void physics_paddle_hit(pong_game_t *g, pong_paddle_t *p, bool left_side)
 {
     if (!g || !p) return;
+    physics_sfx_inc(&g->sfx_paddle_hit_count, 1u);
 
     float speed_up = 1.02f;
     float vlim = 1.6f;
@@ -389,8 +396,12 @@ static bool physics_step_sub(pong_game_t *g, float dt)
     g->ball.z += g->ball.vz * dt;
 
     /* Walls (y and z). */
+    float vy_before = g->ball.vy;
+    float vz_before = g->ball.vz;
     physics_wall_bounce(&g->ball.y, &g->ball.vy, g->ball.r);
     physics_wall_bounce(&g->ball.z, &g->ball.vz, g->ball.r);
+    if (g->ball.vy != vy_before) physics_sfx_inc(&g->sfx_wall_bounce_count, 1u);
+    if (g->ball.vz != vz_before) physics_sfx_inc(&g->sfx_wall_bounce_count, 1u);
 
     /* Paddle collisions. */
     const float slop = g->ball.r * 0.02f;
