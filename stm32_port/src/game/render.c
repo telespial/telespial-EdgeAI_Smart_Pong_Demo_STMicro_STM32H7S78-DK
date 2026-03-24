@@ -658,7 +658,7 @@ static void render_side_role_text(uint16_t *dst, uint32_t w, uint32_t h, int32_t
     const char *txt = "HUMAN";
     uint16_t c_role = sw_pack_rgb565_u8(255, 198, 90);
     const uint16_t c_shadow = sw_pack_rgb565_u8(10, 10, 12);
-    const int32_t scale = 2;
+    const int32_t scale = 3;
 
     if (role == kSideRoleAlgo)
     {
@@ -781,15 +781,16 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         sw_render_fill_rect(dst, w, h, tile_x0, tile_y0, ix, iy + i * 5, ix + 12, iy + i * 5 + 1, c_text_dim);
     }
 
-    /* Label: P{0,1,2} D{1,2,3} */
+    /* Label: keep P* left; right-align D* just before help segment. */
     char players = (g->mode == kGameModeZeroPlayer) ? '0' : (g->mode == kGameModeSinglePlayer) ? '1' : '2';
     char diff = (g->difficulty < 1) ? '1' : (g->difficulty > 3) ? '3' : (char)('0' + g->difficulty);
-    char s[8] = {'P', players, ' ', 'D', diff, 0};
+    char ptxt[4] = {'P', players, 0};
+    char dtxt[4] = {'D', diff, 0};
 
     const int32_t scale = 2;
-    int32_t tx = pill_x0 + 30;
+    int32_t ptx = pill_x0 + 30;
     int32_t ty = pill_y0 + (EDGEAI_UI_PILL_H - 7 * scale) / 2;
-    edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, tx, ty, scale, s, c_text);
+    edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, ptx, ty, scale, ptxt, c_text);
 
     /* Help icon: right-aligned inside the pill. */
     {
@@ -803,6 +804,13 @@ static void render_ui(uint16_t *dst, uint32_t w, uint32_t h, int32_t tile_x0, in
         /* Segment background + divider. */
         render_fill_round_rect(dst, w, h, tile_x0, tile_y0, hx0, hy0, hx1, hy1, EDGEAI_UI_PILL_H / 2, c_help_bg);
         sw_render_line(dst, w, h, tile_x0, tile_y0, hx0, hy0 + 3, hx0, hy1 - 3, c_pill_border);
+
+        {
+            const int32_t gap_to_help = 8;
+            int32_t dtw = edgeai_text5x7_width(scale, dtxt);
+            int32_t dtx = hx0 - gap_to_help - dtw;
+            edgeai_text5x7_draw_scaled_sw(dst, w, h, tile_x0, tile_y0, dtx, ty, scale, dtxt, c_text);
+        }
 
         const int32_t qscale = 2;
         const char *q = "?";

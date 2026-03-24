@@ -62,3 +62,12 @@
 - Built successfully via `./tools/build_arm.sh`.
 - Promoted this build to golden timestamp: `20260323T180746Z`.
 - Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.
+
+## 2026-03-24 (Fairness, EdgeAI tune, UI readability + promotion)
+- Switched startup SKILL default to `ALGO/AI` (left ALGO, right EdgeAI).
+- Fairness fix in mixed modes: removed EdgeAI-only adaptive profile/cadence advantages over ALGO.
+- Tuned EdgeAI layer to improve win rate without changing ALGO logic path.
+- Increased top side-role label size (`ALGO`, `HUMAN`, `EdgeAI`) and adjusted top pill text spacing.
+- Built and flashed successfully via `./tools/build_arm.sh` and `./tools/flash_first.sh`.
+- Promoted this build to golden timestamp: `20260324T164436Z`.
+- Refreshed `failsafe_active`, restore-pointer docs/scripts, and `failsafe/SHA256SUMS.txt`.

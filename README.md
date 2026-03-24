@@ -61,7 +61,7 @@ Display and touch are handled using STM32H7S78-DK board support stack (LCD + GT9
 - `Difficulty`: `1`, `2`, `3`
 - `EDGEAI`: `ON`, `OFF` (UI label; no hardware NPU on STM32H7S78)
 - `DSP`: `ON`, `OFF` (`ON` enables CMSIS-DSP kernels in the EdgeAI path; startup default is `OFF`)
-- `SKILL`: `2AI`, `AI/ALGO`, `ALGO/AI`
+- `SKILL`: `2AI`, `AI/ALGO`, `ALGO/AI` (startup default: `ALGO/AI`)
 - `PERSIST`: `ON`, `OFF`
 - `MATCH`: `11`, `100`, `1K` (`1K` maps to `999` cap logic)
 - `TARGET`: `ON`, `OFF`
@@ -76,9 +76,9 @@ Runtime paths:
 
 Behavior:
 - Per-side target prediction outputs `(y_hit, z_hit, t_hit)`
-- ALGO and EDGEAI share identical base cadence, speed limits, and noise
-- EDGEAI applies a bounded prediction-correction layer on top of analytic intercept
-- High-speed tuning raises EdgeAI refresh cadence and movement headroom to remain competitive at faster ball speeds
+- ALGO remains the fixed analytic baseline path
+- EDGEAI applies an additive prediction-correction layer on top of analytic intercept
+- EdgeAI-side tuning can adjust correction strength, refresh cadence, and movement/noise assists while ALGO logic remains untouched
 - Mixed modes (`AI/ALGO`, `ALGO/AI`) support side-to-side comparison
 - Confidence gate bounds predictor correction against analytic physics
 - If predictor path fails, control falls back to analytic path
@@ -119,6 +119,7 @@ Future acceleration hook points:
 - In-menu volume control (`VOL DN`/`UP`) with live audio update
 - AI-driven serve variation with directional bias
 - Startup serve speed increased by 50% from prior baseline
+- Larger top side-role labels (`ALGO`, `HUMAN`, `EdgeAI`) for readability
 
 ## Build and Flash (STM32)
 From repo root:
@@ -144,6 +145,6 @@ Restore points:
 ## Restore Points
 - Active golden/failsafe pointer: `docs/RESTORE_POINTS.md`
 - Current golden artifact:
-- `failsafe/edgeai_smart_pong_stm32_golden_20260323T180746Z.elf`
+- `failsafe/edgeai_smart_pong_stm32_golden_20260324T164436Z.elf`
 - Failsafe active artifact:
 - `failsafe/edgeai_smart_pong_stm32_failsafe_active.elf`

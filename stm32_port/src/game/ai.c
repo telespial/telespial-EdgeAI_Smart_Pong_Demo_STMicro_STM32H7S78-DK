@@ -402,6 +402,15 @@ static void ai_learning_commit_store(const pong_game_t *g)
     s_learn_store_dirty = true;
 }
 
+/* Keep mixed AI/ALGO and ALGO/AI comparisons fair:
+ * only allow adaptive profile tuning when both sides run EdgeAI.
+ */
+static bool ai_adaptive_profile_enabled(const pong_game_t *g)
+{
+    if (!g) return false;
+    return (g->ai_learn_mode == kAiLearnModeBoth);
+}
+
 static void ai_learning_apply_store_to_game(pong_game_t *g, const ai_learn_store_t *store)
 {
     if (!g || !store) return;
@@ -558,6 +567,7 @@ void ai_learning_sync_store(pong_game_t *g)
 void ai_learning_on_paddle_hit(pong_game_t *g, bool left_side)
 {
     if (!g) return;
+    if (!ai_adaptive_profile_enabled(g)) return;
     bool right_side = !left_side;
     if (!ai_learning_side_selected(g, right_side)) return;
 
@@ -610,6 +620,7 @@ void ai_learning_on_paddle_hit(pong_game_t *g, bool left_side)
 void ai_learning_on_miss(pong_game_t *g, bool left_side)
 {
     if (!g) return;
+    if (!ai_adaptive_profile_enabled(g)) return;
     bool right_side = !left_side;
     if (!ai_learning_side_selected(g, right_side)) return;
 
@@ -815,6 +826,7 @@ static void ai_mirror_features_x(const float in[16], float out[16])
 
 static uint32_t ai_update_div(const pong_game_t *g, bool use_npu)
 {
+    (void)use_npu;
     uint8_t d = g ? g->difficulty : 2;
     if (d < 1) d = 1;
     if (d > 3) d = 3;
@@ -823,7 +835,6 @@ static uint32_t ai_update_div(const pong_game_t *g, bool use_npu)
 
     /* At higher ball speeds, refresh targets every frame to prevent laggy AI. */
     if (speed > 3.0f) return 1u;
-    if (use_npu && speed > 2.2f) return 1u;
 
     switch (d)
     {
@@ -906,11 +917,17 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
 
     bool ball_toward = right_side ? (g->ball.vx > 0.0f) : (g->ball.vx < 0.0f);
     bool side_edgeai = ai_learning_side_selected(g, right_side);
+    bool adaptive_profile = side_edgeai && ai_adaptive_profile_enabled(g);
     bool use_npu = g->ai_enabled && side_edgeai && ball_toward;
 
     /* Refresh AI target at a lower rate for difficulty and lower CPU. */
     uint32_t div = ai_update_div(g, use_npu);
     if (div == 0u) div = 1u;
+    if (side_edgeai)
+    {
+        float speed_x = absf_dsp(use_dsp, g->ball.vx);
+        if ((speed_x > 1.8f) && (div > 1u)) div--;
+    }
     if ((g->frame % div) == 0u)
     {
         float y_ref = 0.5f;
@@ -965,18 +982,24 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                     float dtau = clampf(dt_raw, -0.30f, 0.30f);
 
                     float disagreement = ai_disagreement_metric(use_dsp, dy, dz, dtau);
-                    npu_confidence = clampf(1.0f - (disagreement / 0.36f), 0.0f, 1.0f);
+                    npu_confidence = clampf(1.0f - (disagreement / 0.62f), 0.0f, 1.0f);
 
-                    /* Keep the layer bounded: EDGEAI can improve targeting, but
-                     * does not alter control envelopes or cadence.
+                    /* EDGEAI layer stays additive over analytic ALGO baseline,
+                     * but we fuse timing delta into axis deltas to improve
+                     * intercept quality at speed.
                      */
-                    float layer_w = 0.62f * npu_confidence;
-                    y_hit = y_ref + (dy * layer_w);
-                    z_hit = z_ref + (dz * layer_w);
+                    float dy_tau = g->ball.vy * dtau;
+                    float dz_tau = g->ball.vz * dtau;
+                    float dy_fused = clampf(dy + 0.65f * dy_tau, -0.32f, 0.32f);
+                    float dz_fused = clampf(dz + 0.65f * dz_tau, -0.32f, 0.32f);
+
+                    float layer_w = 0.28f + (0.72f * npu_confidence);
+                    y_hit = y_ref + (dy_fused * layer_w);
+                    z_hit = z_ref + (dz_fused * layer_w);
                 }
             }
 
-            if (side_edgeai)
+            if (adaptive_profile)
             {
                 ai_learn_profile_t *lp = ai_profile_side(g, right_side);
                 if (lp)
@@ -996,10 +1019,19 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
                     }
                 }
             }
+            else if (side_edgeai && (t_ref > 0.0f))
+            {
+                /* Mixed AI/ALGO mode assist: keep ALGO untouched while giving
+                 * EdgeAI a small additive anticipatory layer.
+                 */
+                y_hit += g->ball.vy * t_ref * 0.070f;
+                z_hit += g->ball.vz * t_ref * 0.070f;
+            }
 
             /* Add small noise to avoid perfect play. */
             float noise = ai_noise(g, right_side);
-            if (side_edgeai)
+            if (side_edgeai) noise *= 0.72f;
+            if (adaptive_profile)
             {
                 ai_learn_profile_t *lp = ai_profile_side(g, right_side);
                 if (lp) noise *= clampf(lp->noise_scale, 0.55f, 1.55f);
@@ -1022,10 +1054,14 @@ static void ai_step_one(pong_game_t *g, float dt, pong_paddle_t *p, bool right_s
     float prev_z = p->z;
 
     float max_speed = ai_max_speed(g, right_side);
-    if (side_edgeai)
+    if (adaptive_profile)
     {
         ai_learn_profile_t *lp = ai_profile_side(g, right_side);
         if (lp) max_speed *= clampf(lp->speed_scale, 0.85f, 1.55f);
+    }
+    else if (side_edgeai)
+    {
+        max_speed *= 1.10f;
     }
     max_speed = clampf(max_speed, 0.70f, 3.40f);
     float max_step = max_speed * dt;
