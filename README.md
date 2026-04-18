@@ -148,3 +148,7 @@ Restore points:
 - `failsafe/edgeai_smart_pong_stm32_golden_20260324T164436Z.elf`
 - Failsafe active artifact:
 - `failsafe/edgeai_smart_pong_stm32_failsafe_active.elf`
+
+## License
+
+See [LICENSE](./LICENSE).
